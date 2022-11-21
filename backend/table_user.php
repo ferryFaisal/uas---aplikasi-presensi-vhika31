@@ -119,19 +119,19 @@
       <li class="nav-item active">
         <a class="nav-link" href="table_user.php">
           <i class="fas fa-fw fa-table"></i>
-          <span>Tables User</span></a>
+          <span>Table User</span></a>
       
       </li>
       <li class="nav-item active">
         <a class="nav-link" href="table_mahasiswa.php">
           <i class="fas fa-fw fa-table"></i>
-          <span>Tables Mahasiswa</span></a>
+          <span>Table Mahasiswa</span></a>
       
       </li>
       <li class="nav-item active">
         <a class="nav-link" href="table_presensi.php">
           <i class="fas fa-fw fa-table"></i>
-          <span>Tables Presensi</span></a>
+          <span>Table Presensi</span></a>
       
       </li>
     </ul>
