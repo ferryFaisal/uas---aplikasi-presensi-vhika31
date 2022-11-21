@@ -2,7 +2,7 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "backend_webpro";
+$dbname = "uas_presensi_vhikawanasa";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
