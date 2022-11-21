@@ -1,5 +1,51 @@
 <!doctype html>
 <html lang="en">
+<?php
+session_start();
+//pemeriksaan session
+if (!isset($_SESSION['role'])) {//jika sudah login
+  //session belum ada artinya belum login
+  header("Location:admin/trash/login.php");
+}
+function cek($data) {
+  $data = trim($data);
+  $data = stripslashes($data);
+  $data = htmlspecialchars($data);
+  return $data;
+}
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  if (isset($_POST['submit'])) {
+    
+    require 'admin/trash/database.php';
+    $tgl = cek($_POST['tgl']);
+    $makul = cek($_POST['makul']);
+    $kelas = cek($_POST['kelas']);
+    $nim = cek($_POST['nim']);
+    $name = cek($_POST['nama']);
+    $presensi= cek($_POST['presensi']);
+    $sql = "SELECT tgl_presensi from presensi WHERE tgl_presensi = '$tgl' and nim = '$nim'";
+    $result = $conn->query($sql);
+    //cek email terdaftar
+    if ($result->num_rows == 0) {
+      //cek pw sama
+      // echo "pw1 : ".cek($password).", pw2 : ".$cpassword."<br>";
+        // echo "masuk";
+        $sql = "INSERT INTO presensi (tgl_presensi, makul, kelas, nim, nama, status_presensi) 
+        VALUES 
+        ('$tgl','$makul','$kelas','$nim', '$name', '$presensi')";
+        if ($conn->query($sql) === TRUE) {
+          echo "<script>alert('Data baru telah ditambahkan')</script>";
+          // echo "New record created succesfully";
+        } else {
+          echo "Error: " . $sql . "<br>" . $conn->error;
+        }
+    } else {
+      echo "<script>alert('Sudah ada absensi NIM:$nim pada tanggal $tgl')</script>";
+    }
+    $conn->close();
+  }
+}
+?>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,17 +60,17 @@
     <div class="card card-register mx-auto mt-5">
       <div class="card-header text-center"><h4>Pengisian Kehadiran Mahasiswa</h4></div>
       <div class="card-body">
-        <form method="POST" action="">
+        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
           <!-- <div class="form-group"> -->
             <div class="row form-row mb-1">
               <div class="col-md-4">
                 <div class="form-label-group">
-                  <input type="date" id="tgl" name="tgl" class="form-control" placeholder="Tgl" autofocus="autofocus" value="">
+                  <input type="date" id="tgl" name="tgl" class="form-control" autofocus="autofocus" placeholder="Tgl" value="<?=date("Y-m-d")?>" >
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="form-label-group">
-                  <select name="makul" id="makul" class="form-control" autofocus="autofocus">
+                  <select name="makul" id="makul" class="form-control" autofocus="autofocus" required>
                     <option value=""> -- Pilih Mata Kuliah  -- </option>
                     <option value="WebProg"> Pemrograman Web </option>
                     <option value="WebProgLab"> Praktik Pemrograman Web </option>
@@ -34,11 +80,13 @@
               </div>
               <div class="col-md-4">
                 <div class="form-label-group">
-                  <select name="kelas" id="kelas" class="form-control" autofocus="autofocus">
+                  <form method="post" action="">
+                  <select name="kelas" id="kelas" class="form-control" autofocus="autofocus" required onchange="this.form.submit()">
                     <option value=""> -- Pilih Kelas -- </option>
                     <option value="5A"> 5A </option>
                     <option value="5B"> 5B </option>
                   </select>
+                  </form>
                 </div>
               </div>
             </div><hr>
@@ -47,22 +95,32 @@
                 <div class="col-md-4"><strong>Nama Lengkap</strong></div>
                 <div class="col-md-4"><strong>Status Presensi</strong></div>
             </div><hr>
+            <?php
+                require 'backend/connect_db.php';
+                  if (isset($_POST['kelas'])) {
+                    $sql = "SELECT * FROM mahasiswa where kelas = '$_POST[kelas]' ORDER BY nim ASC";
+                  }else{
+                    $sql = "SELECT * FROM mahasiswa ORDER BY nim ASC";
+                  }
+                  $result = $conn->query($sql);
+                  foreach($result as $row)
+                  {
+                    ?>
             <div class="row form-row mb-1">
               <div class="col-md-4">
                 <div class="form-label-group">
-                  <input type="text" id="nim" name="nim" class="form-control" placeholder="NIM" autofocus="autofocus" value="3202016040">
+                  <input type="text" id="nim" name="nim" class="form-control" placeholder="NIM" autofocus="autofocus" value="<?=$row['nim']?>" readonly>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="form-label-group">
-                  <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama" autofocus="autofocus" value="Rabuansah">
+                  <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama" autofocus="autofocus" value="<?=$row['nama']?>" readonly>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="form-label-group">
-                  <select name="presensi" id="presensi" class="form-control" autofocus="autofocus">
-                      <option value=""> -- Pilih Status -- </option>
-                      <option value="Hadir"> Hadir </option>
+                  <select name="presensi" id="presensi" class="form-control" autofocus="autofocus" required>
+                      <option selected="selected" value="Hadir"> Hadir </option>
                       <option value="Sakit"> Sakit </option>
                       <option value="Izin"> Izin </option>
                       <option value="Alpa"> Alpa </option>
@@ -70,213 +128,9 @@
                 </div>
               </div>
             </div>
-            <div class="row form-row mb-1">
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nim" name="nim" class="form-control" placeholder="NIM" autofocus="autofocus" value="3202016041">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama" autofocus="autofocus" value="Annisa Parastika Adellia">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <select name="presensi" id="presensi" class="form-control" autofocus="autofocus">
-                      <option value=""> -- Pilih Status -- </option>
-                      <option value="Hadir"> Hadir </option>
-                      <option value="Sakit"> Sakit </option>
-                      <option value="Izin"> Izin </option>
-                      <option value="Alpa"> Alpa </option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="row form-row mb-1">
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nim" name="nim" class="form-control" placeholder="NIM" autofocus="autofocus" value="3202016042">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama" autofocus="autofocus" value="Egi Aenggi">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <select name="presensi" id="presensi" class="form-control" autofocus="autofocus">
-                      <option value=""> -- Pilih Status -- </option>
-                      <option value="Hadir"> Hadir </option>
-                      <option value="Sakit"> Sakit </option>
-                      <option value="Izin"> Izin </option>
-                      <option value="Alpa"> Alpa </option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="row form-row mb-1">
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nim" name="nim" class="form-control" placeholder="NIM" autofocus="autofocus" value="3202016045">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama" autofocus="autofocus" value="Jurina">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <select name="presensi" id="presensi" class="form-control" autofocus="autofocus">
-                      <option value=""> -- Pilih Status -- </option>
-                      <option value="Hadir"> Hadir </option>
-                      <option value="Sakit"> Sakit </option>
-                      <option value="Izin"> Izin </option>
-                      <option value="Alpa"> Alpa </option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="row form-row mb-1">
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nim" name="nim" class="form-control" placeholder="NIM" autofocus="autofocus" value="3202016074">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama" autofocus="autofocus" value="Feby Paramudia">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <select name="presensi" id="presensi" class="form-control" autofocus="autofocus">
-                      <option value=""> -- Pilih Status -- </option>
-                      <option value="Hadir"> Hadir </option>
-                      <option value="Sakit"> Sakit </option>
-                      <option value="Izin"> Izin </option>
-                      <option value="Alpa"> Alpa </option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="row form-row mb-1">
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nim" name="nim" class="form-control" placeholder="NIM" autofocus="autofocus" value="3202016075">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama" autofocus="autofocus" value="Susan">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <select name="presensi" id="presensi" class="form-control" autofocus="autofocus">
-                      <option value=""> -- Pilih Status -- </option>
-                      <option value="Hadir"> Hadir </option>
-                      <option value="Sakit"> Sakit </option>
-                      <option value="Izin"> Izin </option>
-                      <option value="Alpa"> Alpa </option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="row form-row mb-1">
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nim" name="nim" class="form-control" placeholder="NIM" autofocus="autofocus" value="3202016076">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama" autofocus="autofocus" value="Tari">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <select name="presensi" id="presensi" class="form-control" autofocus="autofocus">
-                      <option value=""> -- Pilih Status -- </option>
-                      <option value="Hadir"> Hadir </option>
-                      <option value="Sakit"> Sakit </option>
-                      <option value="Izin"> Izin </option>
-                      <option value="Alpa"> Alpa </option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="row form-row mb-1">
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nim" name="nim" class="form-control" placeholder="NIM" autofocus="autofocus" value="3202016077">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama" autofocus="autofocus" value="Jaka Adi Baskara">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <select name="presensi" id="presensi" class="form-control" autofocus="autofocus">
-                      <option value=""> -- Pilih Status -- </option>
-                      <option value="Hadir"> Hadir </option>
-                      <option value="Sakit"> Sakit </option>
-                      <option value="Izin"> Izin </option>
-                      <option value="Alpa"> Alpa </option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="row form-row mb-1">
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nim" name="nim" class="form-control" placeholder="NIM" autofocus="autofocus" value="3202016078">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama" autofocus="autofocus" value="Aris Adhadi">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <select name="presensi" id="presensi" class="form-control" autofocus="autofocus">
-                      <option value=""> -- Pilih Status -- </option>
-                      <option value="Hadir"> Hadir </option>
-                      <option value="Sakit"> Sakit </option>
-                      <option value="Izin"> Izin </option>
-                      <option value="Alpa"> Alpa </option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="row form-row mb-1">
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nim" name="nim" class="form-control" placeholder="NIM" autofocus="autofocus" value="3202016079">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama" autofocus="autofocus" value="Uray Ibnu Setiawan">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-label-group">
-                  <select name="presensi" id="presensi" class="form-control" autofocus="autofocus">
-                      <option value=""> -- Pilih Status -- </option>
-                      <option value="Hadir"> Hadir </option>
-                      <option value="Sakit"> Sakit </option>
-                      <option value="Izin"> Izin </option>
-                      <option value="Alpa"> Alpa </option>
-                  </select>
-                </div>
-              </div>
-            </div>
+            <?php
+            }
+            ?>
           <!-- </div> -->
           <br>
           <p class="text-center">
