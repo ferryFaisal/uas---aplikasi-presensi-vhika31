@@ -111,16 +111,25 @@
           <a class="dropdown-item" href="blank.html">Blank Page</a>
         </div>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" href="charts.html">
-          <i class="fas fa-fw fa-chart-area"></i>
-          <span>Charts</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="tables.html">
+      <li class="nav-item active">
+        <a class="nav-link" href="table_user.php">
           <i class="fas fa-fw fa-table"></i>
-          <span>Tables</span></a>
+          <span>Table User</span></a>
+      
       </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="table_mahasiswa.php">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Table Mahasiswa</span></a>
+      
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="table_presensi.php">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Table Presensi</span></a>
+      
+      </li>
+
     </ul>
 
     <div id="content-wrapper">
